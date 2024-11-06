@@ -49,12 +49,12 @@
 这个`installation`分支使用 *安装模式* 进行说明。在实际使用中我们也推荐 *安装模式*。
 
 ```bash
-git clone -b installation https://github.com/xinntao/BasicSR-examples.git
-cd BasicSR-examples
+git clone -b installation https://github.com/dawnlh/BasicSR-Lite.git
+cd BasicSR-Lite
 python setup.py develop  # need to install
 ```
 
-**注意**: 安装模式需要一个 包的名字 来安装。在这里，我们使用 `basicsrexamples` 作为包名。
+**注意**: 安装模式需要一个 包的名字 来安装。在这里，我们使用 `basicsr_lite` 作为包名。
 
 ### 预备
 
@@ -105,7 +105,7 @@ python scripts/prepare_example_data.py
 
 这个部分是用来确定喂给模型的数据的。
 
-这个 dataset 的例子在[basicsrexamples/data/example_dataset.py](basicsrexamples/data/example_dataset.py) 中，它完成了:
+这个 dataset 的例子在[basicsr_lite/data/example_dataset.py](basicsr_lite/data/example_dataset.py) 中，它完成了:
 1. 我们读取 Ground-Truth (GT) 的图像。读取的操作，BasicSR 提供了[FileClient](https://github.com/xinntao/BasicSR/blob/master/basicsr/utils/file_client.py), 可以方便地读取 folder, lmdb 和 meta_info txt 指定的文件。在这个例子中，我们通过读取 folder 来说明，更多的读取模式可以参考 [basicsr/data](https://github.com/xinntao/BasicSR/tree/master/basicsr/data)
 1. 合成低分辨率的图像。我们直接可以在 `__getitem__(self, index)` 的函数中实现我们想要的操作，比如降采样和添加 JPEG 压缩。很多基本操作都可以在 [[basicsr/data/degradations]](https://github.com/xinntao/BasicSR/blob/master/basicsr/data/degradations.py), [[basicsr/data/tranforms]](https://github.com/xinntao/BasicSR/blob/master/basicsr/data/transforms.py) 和 [[basicsr/data/data_util]](https://github.com/xinntao/BasicSR/blob/master/basicsr/data/data_util.py) 中找到
 1. 转换成 Torch Tensor，返回合适的信息
@@ -148,7 +148,7 @@ datasets:
 
 #### :two: arch
 
-Architecture 的例子在 [basicsrexamples/archs/example_arch.py](basicsrexamples/archs/example_arch.py)中。它主要搭建了网络结构。
+Architecture 的例子在 [basicsr_lite/archs/example_arch.py](basicsr_lite/archs/example_arch.py)中。它主要搭建了网络结构。
 
 **注意**：
 1. 需要在 `ExampleArch` 前添加 `@ARCH_REGISTRY.register()`，以便注册好新写的 arch。这个操作主要用来防止出现同名的 arch，从而带来潜在的 bug
@@ -170,7 +170,7 @@ network_g:
 
 #### :three: model
 
-Model 的例子在 [basicsrexamples/models/example_model.py](basicsrexamples/models/example_model.py)中。它主要搭建了模型的训练过程。
+Model 的例子在 [basicsr_lite/models/example_model.py](basicsr_lite/models/example_model.py)中。它主要搭建了模型的训练过程。
 在这个文件中：
 1. 我们从 basicsr 中继承了 `SRModel`。很多模型都有相似的操作，因此可以通过继承 [basicsr/models](https://github.com/xinntao/BasicSR/tree/master/basicsr/models) 中的模型来更方便地实现自己的想法，比如GAN模型，Video模型等
 1. 使用了两个 Loss： L1 和 L2 (MSE) loss
@@ -214,30 +214,16 @@ train:
 
 #### :four: training pipeline
 
-整个 training pipeline 可以复用 basicsr 里面的 [basicsr/train.py](https://github.com/xinntao/BasicSR/blob/master/basicsr/train.py)。
+整个 training pipeline 可以复用 basicsr_lite 里面的[basicsr_lite/train.py](basicsr_lite/train.py)，非常简洁。
 
-基于此，我们的 [basicsrexamples/train.py](basicsrexamples/train.py)可以非常简洁。
 
-```python
-import os.path as osp
-
-import archs  # noqa: F401
-import data  # noqa: F401
-import models  # noqa: F401
-from basicsr.train import train_pipeline
-
-if __name__ == '__main__':
-    root_path = osp.abspath(osp.join(__file__, osp.pardir))
-    train_pipeline(root_path)
-
-```
 
 #### :five: debug mode
 
 至此，我们已经完成了我们这个项目的开发，下面可以通过 `debug` 模式来快捷地看看是否有问题:
 
 ```bash
-python basicsrexamples/train.py -opt options/example_option.yml --debug
+python basicsr_lite/train.py -opt options/train/Example/train_example.yml --debug
 ```
 
 只要带上 `--debug` 就进入 debug 模式。在 debug 模式中，程序每个iter都会输出，8个iter后就会进行validation，这样可以很方便地知道程序有没有bug啦~
@@ -247,53 +233,53 @@ python basicsrexamples/train.py -opt options/example_option.yml --debug
 经过debug没有问题后，我们就可以正式训练了。
 
 ```bash
-python basicsrexamples/train.py -opt options/example_option.yml
+python basicsr_lite/train.py -opt options/train/Example/train_example.yml
 ```
 
 如果训练过程意外中断需要 resume, 则使用 `--auto_resume` 可以方便地自动resume：
 ```bash
-python train.py -opt options/example_option.yml --auto_resume
+python basicsr_lite/train.py -opt options/train/Example/train_example.yml --auto_resume
 ```
 
-至此，使用 `BasicSR` 开发你自己的项目就介绍完了，是不是很方便呀~ :grin:
+
+#### :seven: test & inference
+
+模型训练完成之后，就到了测试评估（test or evaluate）环节，测试评估时也是基于options文件夹给定的配置文件来进行：
+
+```bash
+python basicsr_lite/test.py -opt options/test/Example/test_example.yml
+```
+
+结果会保存在 `results` 文件夹下。
+
+训练完成的模型也可能会直接用于实际应用中，即只进行推理（inference），获得模型输出，而不进行结果的指标评估等环节：
+
+```bash
+python inference/infer_example.py --model_path <MODEL_PATH> --input <INPUT_PATH> --output <OUTPUT_PATH>
+```
+
+至此，使用 `BasicSR_Lite` 开发你自己的项目就介绍完了，是不是很方便呀~ :grin:
 
 ## As a Template
 
 你可以使用 BasicSR-Examples 作为你项目的模板。下面主要展示一下你可能需要的修改。
-
-由于 GitHub 不支持将特定分支作为模板，因此我们需要额外的步骤来使用`installation`分支作为模板。
-
-1. 点击 `Use this template`；记得勾选 `[ ] Include all branches`
-2. 将 安装分支 修改为 主分支
-    ```bash
-    git clone -b installation YOUR_REPO  # clone the installation branch
-    cd REPO_NAME
-    git branch -m installation master  # rename the installation branch to master
-    git push -f origin master  # force push the local master branch to remote
-    git push origin --delete installation  # delete the remote installation branch
-    ```
 
 你需要根据需要修改以下文件:
 
 1. 设置 *pre-commit* hook
     1. 在文件夹根目录, 运行
     > pre-commit install
-1. 修改 `LICENSE` 文件<br>
+2. 修改 `LICENSE` 文件<br>
     本仓库使用 *MIT* 许可, 根据需要可以修改成其他许可
 
-由于安装模式需要包名，因此还需要将所有`basicsrexamples`名称修改为 YOUR_PACKAGE_NAME。
-以下是包含`basicsrexamples`名称的详细位置：
+由于安装模式需要包名，因此还需要将所有`basicsr_lite`名称修改为 YOUR_PACKAGE_NAME。
+以下是包含`basicsr_lite`名称的详细位置：
 
-1. The `basicsrexamples` folder
+1. The `basicsr_lite` folder
 1. [setup.py](setup.py#L9); &emsp; [setup.py](setup.py#L48); &emsp;[setup.py](setup.py#L91)
-1. [basicsrexamples/train.py](basicsrexamples/train.py#L4-L6)
-1. [basicsrexamples/archs/\_\_init\_\_.py](basicsrexamples/archs/__init__.py#L11)
-1. [basicsrexamples/data/\_\_init\_\_.py](basicsrexamples/data/__init__.py#L11)
-1. [basicsrexamples/models/\_\_init\_\_.py](basicsrexamples/models/__init__.py#L11)
+1. [basicsr_lite/train.py](basicsr_lite/train.py#L4-L6)
+1. [basicsr_lite/archs/\_\_init\_\_.py](basicsr_lite/archs/__init__.py#L11)
+1. [basicsr_lite/data/\_\_init\_\_.py](basicsr_lite/data/__init__.py#L11)
+1. [basicsr_lite/models/\_\_init\_\_.py](basicsr_lite/models/__init__.py#L11)
 
 你也需要修改文件 [setup.py](setup.py#L88-L113) 中的相应信息。
-
-## :e-mail: 联系
-
-如果你有任何问题，或者想要添加你的项目到列表中，欢迎电邮
- `xintao.wang@outlook.com` or `xintaowang@tencent.com`.

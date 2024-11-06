@@ -4,8 +4,13 @@ results/*
 tb_logger/*
 wandb/*
 tmp/*
+.eggs/
+*.egg-info/
 
 *.DS_Store
+
+# exclusion
+!*.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

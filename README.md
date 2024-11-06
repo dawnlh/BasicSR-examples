@@ -51,12 +51,12 @@ There are two ways to use the python package of basicsr, which are provided in t
 This `installation` branch uses the *installation mode* for illustration. We recommend using this mode for practical use.
 
 ```bash
-git clone -b installation https://github.com/xinntao/BasicSR-examples.git
-cd BasicSR-examples
+git clone -b installation https://github.com/dawnlh/BasicSR-Lite.git
+cd BasicSR-Lite
 python setup.py develop  # need to install
 ```
 
-**Note that**: the installation model requires a package name for installation. We use `basicsrexamples` as the package name.
+**Note that**: the installation model requires a package name for installation. We use `basicsr_lite` as the package name.
 
 ### Preliminary
 
@@ -109,7 +109,7 @@ Let's explain it separately in the following parts.
 
 We need to implement a new dataset to fulfill our purpose. The dataset is used to feed the data into the model.
 
-An example of this dataset is in [basicsrexamples/data/example_dataset.py](basicsrexamples/data/example_dataset.py). It has the following steps.
+An example of this dataset is in [basicsr_lite/data/example_dataset.py](basicsr_lite/data/example_dataset.py). It has the following steps.
 
 1. Read Ground-Truth (GT) images. BasicSR provides [FileClient](https://github.com/xinntao/BasicSR/blob/master/basicsr/utils/file_client.py) for easily reading files in a folder, LMDB file and meta_info txt. In this example, we use the folder mode. For more reading modes, please refer to [basicsr/data](https://github.com/xinntao/BasicSR/tree/master/basicsr/data)
 1. Synthesize low resolution images. We can directly implement the data procedures in the `__getitem__(self, index)` function, such as downsampling and adding JPEG compression. Many basic operations can be found in [[basicsr/data/degradations]](https://github.com/xinntao/BasicSR/blob/master/basicsr/data/degradations.py), [[basicsr/data/tranforms]](https://github.com/xinntao/BasicSR/blob/master/basicsr/data/transforms.py) ,and [[basicsr/data/data_util]](https://github.com/xinntao/BasicSR/blob/master/basicsr/data/data_util.py)
@@ -154,7 +154,7 @@ datasets:
 
 #### :two: arch
 
-An example of architecture is in [basicsrexamples/archs/example_arch.py](basicsrexamples/archs/example_arch.py). It mainly builds the network structure.
+An example of architecture is in [basicsr_lite/archs/example_arch.py](basicsr_lite/archs/example_arch.py). It mainly builds the network structure.
 
 **Note**:
 
@@ -177,7 +177,7 @@ network_g:
 
 #### :three: model
 
-An example of model is in [basicsrexamples/models/example_model.py](basicsrexamples/models/example_model.py). It mainly builds the training process of a model.
+An example of model is in [basicsr_lite/models/example_model.py](basicsr_lite/models/example_model.py). It mainly builds the training process of a model.
 
 In this file:
 1. We inherit `SRModel` from basicsr. Many models have similar operations, so you can inherit and modify from [basicsr/models](https://github.com/xinntao/BasicSR/tree/master/basicsr/models). In this way, you can easily implement your ideas, such as GAN model, video model, *etc*.
@@ -223,30 +223,14 @@ train:
 
 #### :four: training pipeline
 
-The whole training pipeline can reuse the [basicsr/train.py](https://github.com/xinntao/BasicSR/blob/master/basicsr/train.py) in BasicSR.
-
-Based on this, our [basicsrexamples/train.py](basicsrexamples/train.py) can be very concise:
-
-```python
-import os.path as osp
-
-import archs  # noqa: F401
-import data  # noqa: F401
-import models  # noqa: F401
-from basicsr.train import train_pipeline
-
-if __name__ == '__main__':
-    root_path = osp.abspath(osp.join(__file__, osp.pardir))
-    train_pipeline(root_path)
-
-```
+The whole training pipeline can reuse the  [basicsr_lite/train.py](basicsr_lite/train.py), which can be very concise:
 
 #### :five: debug mode
 
 So far, we have completed the development of our project. We can quickly check whether there is a bug through the `debug` mode:
 
 ```bash
-python basicsrexamples/train.py -opt options/example_option.yml --debug
+python basicsr_lite/train.py -opt options/train/Example/train_example.yml --debug
 ```
 
 With `--debug`, the program will enter the debug mode. In the debug mode, the program will output at each iteration, and perform validation every 8 iterations, so that you can easily know whether the program has a bug~
@@ -256,52 +240,51 @@ With `--debug`, the program will enter the debug mode. In the debug mode, the pr
 After debugging, we can have the normal training.
 
 ```bash
-python basicsrexamples/train.py -opt options/example_option.yml
+python basicsr_lite/train.py -opt options/train/Example/train_example.yml
 ```
 
 If the training process is interrupted unexpectedly and the resume is required. Please use `--auto_resume` in the command:
 
 ```bash
-python train.py -opt options/example_option.yml --auto_resume
+python basicsr_lite/train.py -opt options/train/Example/train_example.yml --auto_resume
 ```
 
-So far, you have finished developing your own projects using `BasicSR`. Isn't it very convenient~ :grin:
+#### :seven: Test & Inference
+
+After the model is trained, it's time for the testing and evaluation phase, which is also conducted based on the configuration file provided in the options folder:
+
+```bash
+python basicsr_lite/test.py -opt options/test/Example/test_example.yml
+```
+
+The outputs will be saved to `results` folder.
+
+The trained model may also be directly used in practical applications, that is, for inference only, to obtain the model's output without going through the evaluation of the results and other metrics:
+
+```bash
+python inference/infer_example.py --model_path <MODEL_PATH> --input <INPUT_PATH> --output <OUTPUT_PATH>
+```
+
+
+So far, you have finished developing your own projects using `BasicSR_Lite`. Isn't it very convenient~ :grin:
 
 ## As a Template
 
-You can use BasicSR-Examples as a template for your project. Here are some modifications you may need.
-
-As GitHub does not support a specific branch as a template, we need extra steps to use the `installation` branch as the template.
-
-1. Click `Use this template` and remember to check the `[ ] Include all branches` checkbox
-2. Change the installation branch to the master branch
-    ```bash
-    git clone -b installation YOUR_REPO  # clone the installation branch
-    cd REPO_NAME
-    git branch -m installation master  # rename the installation branch to master
-    git push -f origin master  # force push the local master branch to remote
-    git push origin --delete installation  # delete the remote installation branch
-    ```
-
-You may need to modify the following files:
+You can use BasicSR-Lite as a template for your project. Here are some modifications you may need.
 
 1. Set up the *pre-commit* hook
-    1. In the root path, run:
-    > pre-commit install
-1. Modify the `LICENSE`<br>
+    1. In the root path, run: `pre-commit install`
+2. Modify the `LICENSE`<br>
     This repository uses the *MIT* license, you may change it to other licenses
 
-As the installation mode requires the package name, you also need to modify all the `basicsrexamples` names to YOUR_PACKAGE_NAME.
-Here are the detailed locations that contain the `basicsrexamples` name:
-1. The `basicsrexamples` folder
-1. [setup.py](setup.py#L9); &emsp; [setup.py](setup.py#L48); &emsp;[setup.py](setup.py#L91)
-1. [basicsrexamples/train.py](basicsrexamples/train.py#L4-L6)
-1. [basicsrexamples/archs/\_\_init\_\_.py](basicsrexamples/archs/__init__.py#L11)
-1. [basicsrexamples/data/\_\_init\_\_.py](basicsrexamples/data/__init__.py#L11)
-1. [basicsrexamples/models/\_\_init\_\_.py](basicsrexamples/models/__init__.py#L11)
+As the installation mode requires the package name, you also need to modify all the `basicsr_lite` names to YOUR_PACKAGE_NAME.
+Here are the detailed locations that contain the `basicsr_lite` name:
+1. The `basicsr_lite` folder
+2. [setup.py](setup.py#L9); &emsp; [setup.py](setup.py#L48); &emsp;[setup.py](setup.py#L91)
+3. [basicsr_lite/train.py](basicsr_lite/train.py#L4-L6)
+4. [basicsr_lite/archs/\_\_init\_\_.py](basicsr_lite/archs/__init__.py#L11)
+5. [basicsr_lite/data/\_\_init\_\_.py](basicsr_lite/data/__init__.py#L11)
+6. [basicsr_lite/models/\_\_init\_\_.py](basicsr_lite/models/__init__.py#L11)
 
 You also need to modify the corresponding information in the [setup.py](setup.py#L88-L113).
 
-## :e-mail: Contact
-
-If you have any questions or want to add your project to the list, please email `xintao.wang@outlook.com` or `xintaowang@tencent.com`.
